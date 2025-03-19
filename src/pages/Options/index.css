@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* 添加HarmonyOS Sans字体声明 */
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('/src/assets/fonts/HarmonyOS_Sans_Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('/src/assets/fonts/HarmonyOS_Sans_Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 可根据需要添加更多字重 */
+
+/* 这里只保留一些全局重置或特殊样式 */
+
+body {
+  margin: 0;
+  font-family: 'HarmonyOS Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
