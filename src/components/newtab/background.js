@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
 
-export default function Background({ children }) {
+export default function Background({ children, onReset }) {
   const [backgrounds, setBackgrounds] = useState([]);
   const [currentBg, setCurrentBg] = useState(null);
   const [loading, setLoading] = useState(true);
+  // 重置确认对话框状态
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   // 获取Bing每日图片
   const fetchBingImages = async () => {
@@ -57,6 +69,12 @@ export default function Background({ children }) {
     setCurrentBg(backgrounds[newIndex]);
   };
 
+  // 处理重置链接的点击事件
+  const handleResetConfirm = () => {
+    onReset && onReset();
+    setResetDialogOpen(false);
+  };
+
   // 生成背景样式
   const getBackgroundStyle = () => {
     if (loading) {
@@ -83,16 +101,51 @@ export default function Background({ children }) {
       {/* 半透明暗色覆盖层，提高文字可读性 */}
       <div className="absolute inset-0 bg-black bg-opacity-30"></div>
 
-      {/* 切换按钮 */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="group absolute top-4 right-4 bg-black/10 backdrop-blur-sm hover:bg-black/70 z-10"
-        onClick={changeBackground}
-        title="切换背景"
-      >
-        <RefreshCw className="h-5 w-5 text-white/30 group-hover:text-white" />
-      </Button>
+      {/* 按钮组 */}
+      <div className="absolute top-4 right-4 flex gap-2 z-10">
+        {/* 切换按钮 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="group bg-black/10 backdrop-blur-sm hover:bg-black/70"
+          onClick={changeBackground}
+          title="切换背景"
+        >
+          <RefreshCw className="h-5 w-5 text-white/30 group-hover:text-white" />
+        </Button>
+
+        {/* 重置按钮 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="group bg-black/10 backdrop-blur-sm hover:bg-black/70"
+          onClick={() => setResetDialogOpen(true)}
+          title="重置为默认链接"
+        >
+          <RotateCcw className="h-5 w-5 text-white/30 group-hover:text-white" />
+        </Button>
+      </div>
+
+      {/* 重置确认对话框 */}
+      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认重置</AlertDialogTitle>
+            <AlertDialogDescription>
+              您确定要将所有链接重置为默认设置吗？此操作将删除所有自定义链接和排序。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={handleResetConfirm}
+            >
+              重置
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* 版权信息 */}
       {currentBg?.copyright && (

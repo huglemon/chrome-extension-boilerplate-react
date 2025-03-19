@@ -185,8 +185,14 @@ const Newtab = () => {
     }
   };
 
+  // 重置链接到默认配置
+  const resetLinksToDefault = () => {
+    setAppLinks(defaultAppLinks);
+    saveLinksToStorage(defaultAppLinks);
+  };
+
   return (
-    <Background>
+    <Background onReset={resetLinksToDefault}>
       <div className="min-h-screen text-foreground py-10">
         {/* 固定区域 */}
         <div className="flex flex-col items-center justify-center gap-10 mb-10">
