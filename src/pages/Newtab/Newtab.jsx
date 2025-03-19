@@ -16,9 +16,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
-import { Button } from '../../components/ui/button';
 import Background from '../../components/newtab/background';
 import Clock from '../../components/newtab/clock';
 import SearchBar from '../../components/newtab/searchBar';
@@ -26,24 +23,6 @@ import Link from '../../components/newtab/link/link';
 import Add from '../../components/newtab/link/add';
 // 导入配置文件
 import linkConfig from '../../components/newtab/link/config.json';
-import {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '../../components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '../../components/ui/dialog';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
 
 // 创建可排序的链接项组件
 const SortableLink = ({ app, index, onEdit, onDelete }) => {
