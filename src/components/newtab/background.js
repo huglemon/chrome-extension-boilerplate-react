@@ -87,11 +87,11 @@ export default function Background({ children }) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute top-4 right-4 bg-background/50 backdrop-blur-sm hover:bg-background/70 z-10"
+        className="group absolute top-4 right-4 bg-black/10 backdrop-blur-sm hover:bg-black/70 z-10"
         onClick={changeBackground}
         title="切换背景"
       >
-        <RefreshCw className="h-5 w-5" />
+        <RefreshCw className="h-5 w-5 text-white/30 group-hover:text-white" />
       </Button>
 
       {/* 版权信息 */}

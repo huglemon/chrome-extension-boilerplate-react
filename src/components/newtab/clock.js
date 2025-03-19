@@ -94,9 +94,9 @@ export default function Clock() {
 
   return (
     <div className="text-white shadow-sm flex flex-col items-center">
-      <div className="text-6xl font-bold">{formatTime()}</div>
+      <div className="text-7xl">{formatTime()}</div>
       <div className="text-base mt-2">
-        {getDateInfo()} {getLunarDate()}
+        {getDateInfo()} 农历{getLunarDate()}
       </div>
     </div>
   );
