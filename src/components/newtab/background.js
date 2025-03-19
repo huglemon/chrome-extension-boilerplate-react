@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, RotateCcw } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '../../components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../ui/alert-dialog';
+} from '../../components/ui/alert-dialog';
 
 export default function Background({ children, onReset }) {
   const [backgrounds, setBackgrounds] = useState([]);

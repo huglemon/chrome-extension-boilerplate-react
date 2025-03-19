@@ -21,6 +21,7 @@ import Clock from '../../components/newtab/clock';
 import SearchBar from '../../components/newtab/searchBar';
 import Link from '../../components/newtab/link/link';
 import Add from '../../components/newtab/link/add';
+
 // 导入配置文件
 import linkConfig from '../../components/newtab/link/config.json';
 
