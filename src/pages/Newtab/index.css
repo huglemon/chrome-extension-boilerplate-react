@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 自定义工具类 */
+@layer utilities {
+  /* 隐藏滚动条但保留滚动功能 */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
 
 /* 添加HarmonyOS Sans字体声明 */
 @font-face {
