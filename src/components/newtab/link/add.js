@@ -38,6 +38,11 @@ export default function Add({ onAdd }) {
     setAddDialogOpen(false);
   };
 
+  // 阻止事件冒泡，防止对话框内操作触发拖拽
+  const handleDialogInteraction = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <>
       {/* 添加链接按钮 */}
@@ -62,7 +67,13 @@ export default function Add({ onAdd }) {
 
       {/* 添加链接对话框 */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent
+          className="sm:max-w-md"
+          onMouseDown={handleDialogInteraction}
+          onMouseMove={handleDialogInteraction}
+          onClick={handleDialogInteraction}
+          onPointerDown={handleDialogInteraction}
+        >
           <DialogHeader>
             <DialogTitle>添加新链接</DialogTitle>
             <DialogDescription>

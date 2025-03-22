@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, RotateCcw } from 'lucide-react';
+import { RefreshCw, History } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import {
   AlertDialog,
@@ -122,7 +122,7 @@ export default function Background({ children, onReset }) {
           onClick={() => setResetDialogOpen(true)}
           title="重置为默认链接"
         >
-          <RotateCcw className="h-5 w-5 text-white/30 group-hover:text-white" />
+          <History className="h-5 w-5 text-white/30 group-hover:text-white" />
         </Button>
       </div>
 
@@ -149,7 +149,7 @@ export default function Background({ children, onReset }) {
 
       {/* 版权信息 */}
       {currentBg?.copyright && (
-        <div className="absolute bottom-2 right-2 text-xs text-white opacity-70 max-w-xs text-right">
+        <div className="absolute bottom-2 right-2 text-xs text-white opacity-20 max-w-xs text-right">
           {currentBg.copyright}
         </div>
       )}

@@ -94,6 +94,11 @@ export default function Link({
     setEditDialogOpen(false);
   };
 
+  // 阻止事件冒泡，防止对话框内操作触发拖拽
+  const handleDialogInteraction = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       className="flex flex-col items-center gap-2 cursor-pointer relative"
@@ -223,7 +228,13 @@ export default function Link({
 
       {/* 编辑对话框 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent
+          className="sm:max-w-md"
+          onMouseDown={handleDialogInteraction}
+          onMouseMove={handleDialogInteraction}
+          onClick={handleDialogInteraction}
+          onPointerDown={handleDialogInteraction}
+        >
           <DialogHeader>
             <DialogTitle>编辑链接</DialogTitle>
             <DialogDescription>
@@ -241,7 +252,12 @@ export default function Link({
 
       {/* 删除确认对话框 */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          onMouseDown={handleDialogInteraction}
+          onMouseMove={handleDialogInteraction}
+          onClick={handleDialogInteraction}
+          onPointerDown={handleDialogInteraction}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
