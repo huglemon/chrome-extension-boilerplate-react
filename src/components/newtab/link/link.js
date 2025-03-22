@@ -134,7 +134,7 @@ export default function Link({
         {/* 文字图标（如果提供） */}
         {textIcon && (
           <div
-            className="absolute -top-1 -right-1 w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-medium line"
+            className="absolute -top-1 -right-1 w-6 h-6 rounded-xl flex items-center justify-center text-white text-xs font-medium line"
             style={{ backgroundColor: textBgColor }}
           >
             {textIcon}
@@ -144,7 +144,7 @@ export default function Link({
 
       {/* 链接名称 */}
       <span
-        className="text-sm text-white text-center mt-1 line-clamp-1 max-w-16 overflow-hidden text-ellipsis"
+        className="text-xs text-white text-center mt-1 line-clamp-1 max-w-16 overflow-hidden text-ellipsis"
         title={name}
       >
         {name}

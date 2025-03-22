@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Home,
   Code,
@@ -69,9 +69,27 @@ const ICONS = {
   ShoppingBag,
 };
 
-export default function AddCategoryModal({ isOpen, onClose, onSave }) {
+export default function AddCategoryModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialCategory = null,
+}) {
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [categoryName, setCategoryName] = useState('');
+
+  // 当initialCategory变化时，预填充表单
+  useEffect(() => {
+    if (initialCategory) {
+      setCategoryName(initialCategory.name || '');
+      // 如果是组件对象，则获取名称，否则使用字符串名称
+      const iconName =
+        typeof initialCategory.icon === 'string'
+          ? initialCategory.icon
+          : initialCategory.icon.name || initialCategory.icon.displayName;
+      setSelectedIcon(iconName);
+    }
+  }, [initialCategory]);
 
   // 如果不是打开状态，不渲染组件
   if (!isOpen) return null;
@@ -113,7 +131,9 @@ export default function AddCategoryModal({ isOpen, onClose, onSave }) {
       <div className="bg-white rounded-lg shadow-xl w-80 max-h-[90vh] overflow-hidden flex flex-col z-10">
         {/* 标题 */}
         <div className="p-4 border-b">
-          <h2 className="text-lg font-medium">添加分组</h2>
+          <h2 className="text-lg font-medium">
+            {initialCategory ? '编辑分组' : '添加分组'}
+          </h2>
         </div>
 
         {/* 图标选择网格 */}

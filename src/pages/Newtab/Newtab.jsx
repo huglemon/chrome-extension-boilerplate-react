@@ -411,6 +411,65 @@ const Newtab = () => {
     setActiveCategory(newCategoryId);
   };
 
+  // 编辑分类
+  const editCategory = (categoryId, updatedCategory) => {
+    // 查找要编辑的分类
+    const categoryIndex = customCategories.findIndex(
+      (cat) => cat.id === categoryId
+    );
+
+    // 如果是默认分类或找不到分类，不进行编辑
+    if (categoryIndex === -1 || categoryId < 5) return;
+
+    // 更新分类信息
+    const updatedCategories = [...customCategories];
+    updatedCategories[categoryIndex] = {
+      ...updatedCategories[categoryIndex],
+      name: updatedCategory.name,
+      icon: updatedCategory.icon,
+    };
+
+    // 更新状态并保存
+    setCustomCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+  };
+
+  // 删除分类
+  const deleteCategory = (categoryId) => {
+    // 查找要删除的分类
+    const categoryToDelete = customCategories.find(
+      (cat) => cat.id === categoryId
+    );
+
+    // 如果是默认分类或找不到分类，不进行删除
+    if (!categoryToDelete || categoryId < 5) return;
+
+    // 提示用户确认删除
+    const confirmDelete = window.confirm(
+      `确定要删除"${categoryToDelete.name}"分类吗？此操作将删除该分类下的所有链接。`
+    );
+    if (!confirmDelete) return;
+
+    // 从自定义分类列表中移除
+    const updatedCategories = customCategories.filter(
+      (cat) => cat.id !== categoryId
+    );
+    setCustomCategories(updatedCategories);
+
+    // 从链接列表中移除该分类的链接
+    const { [categoryId]: removedLinks, ...remainingLinks } = categorizedLinks;
+    setCategorizedLinks(remainingLinks);
+
+    // 保存到存储
+    saveCategoriesToStorage(updatedCategories);
+    saveLinksToStorage(remainingLinks);
+
+    // 如果当前正在查看被删除的分类，则切换到主页
+    if (activeCategory === categoryId) {
+      setActiveCategory(0);
+    }
+  };
+
   return (
     <Background onReset={resetLinksToDefault}>
       <div className="flex">
@@ -419,6 +478,8 @@ const Newtab = () => {
           activeCategory={activeCategory}
           onCategoryChange={handleCategoryChange}
           onAddCategory={addCategory}
+          onEditCategory={editCategory}
+          onDeleteCategory={deleteCategory}
           customCategories={customCategories}
         />
 

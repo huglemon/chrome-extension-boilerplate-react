@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Home,
   Code,
@@ -41,9 +41,20 @@ export default function Sidebar({
   activeCategory = 0,
   onCategoryChange,
   onAddCategory,
+  onEditCategory,
+  onDeleteCategory,
   customCategories = [],
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [contextMenu, setContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    categoryId: null,
+  });
+  const sidebarRef = useRef(null);
 
   // 分类数据
   const defaultCategories = [
@@ -123,9 +134,79 @@ export default function Sidebar({
     }
   }
 
+  // 处理右击事件
+  function handleContextMenu(e, category) {
+    e.preventDefault();
+
+    // 不为"添加"分组（id为5）显示右击菜单
+    if (category.id === 5) return;
+
+    // 计算菜单位置
+    const rect = sidebarRef.current.getBoundingClientRect();
+    setContextMenu({
+      visible: true,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      categoryId: category.id,
+    });
+  }
+
+  // 处理编辑分类
+  function handleEditCategory() {
+    // 找到当前正在编辑的分类
+    const categoryToEdit = allCategories.find(
+      (cat) => cat.id === contextMenu.categoryId
+    );
+    if (categoryToEdit) {
+      setEditingCategory(categoryToEdit);
+      setIsEditModalOpen(true);
+    }
+    setContextMenu({ ...contextMenu, visible: false });
+  }
+
+  // 处理删除分类
+  function handleDeleteCategory() {
+    if (onDeleteCategory && contextMenu.categoryId) {
+      onDeleteCategory(contextMenu.categoryId);
+    }
+    setContextMenu({ ...contextMenu, visible: false });
+  }
+
+  // 保存编辑后的分类
+  function handleSaveEdit(updatedCategory) {
+    if (onEditCategory && editingCategory) {
+      onEditCategory(editingCategory.id, updatedCategory);
+    }
+    setIsEditModalOpen(false);
+    setEditingCategory(null);
+  }
+
+  // 关闭上下文菜单
+  function handleCloseContextMenu() {
+    setContextMenu({ ...contextMenu, visible: false });
+  }
+
+  // 点击外部时关闭菜单
+  useEffect(() => {
+    function handleOutsideClick() {
+      if (contextMenu.visible) {
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+    }
+
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [contextMenu]);
+
   return (
     <>
-      <div className="flex flex-col items-center justify-between h-screen py-4 w-12 bg-gray-900/30 backdrop-blur-sm text-gray-300">
+      <div
+        ref={sidebarRef}
+        className="flex flex-col items-center justify-between h-screen py-4 w-12 bg-gray-900/30 backdrop-blur-sm text-gray-300"
+        onClick={handleCloseContextMenu}
+      >
         {/* 上半部分：用户头像和分类图标 */}
         <div className="flex flex-col items-center gap-8">
           {/* 用户头像 */}
@@ -139,17 +220,16 @@ export default function Sidebar({
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                className={`w-8 h-8 flex items-center justify-center transition-all relative ${
+                onContextMenu={(e) => handleContextMenu(e, category)}
+                className={`w-10 h-10 flex flex-col items-center justify-center gap-1 transition-all relative ${
                   activeCategory === category.id
                     ? 'text-blue-400'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
                 title={category.name}
               >
-                {React.createElement(category.icon, { size: 18 })}
-                {activeCategory === category.id && (
-                  <span className="absolute left-0 w-1 h-5 bg-blue-400 rounded-r-full"></span>
-                )}
+                {React.createElement(category.icon, { size: 20 })}
+                <span className="text-[10px]">{category.name.slice(0, 3)}</span>
               </button>
             ))}
           </div>
@@ -161,11 +241,43 @@ export default function Sidebar({
         </div>
       </div>
 
+      {/* 右键菜单 */}
+      {contextMenu.visible && (
+        <div
+          className="absolute bg-gray-800 border border-gray-700 shadow-lg rounded-md py-1 z-50"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+          }}
+        >
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+            onClick={handleEditCategory}
+          >
+            编辑分类
+          </button>
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+            onClick={handleDeleteCategory}
+          >
+            删除分类
+          </button>
+        </div>
+      )}
+
       {/* 添加分类弹窗 */}
       <AddCategoryModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleAddCategory}
+      />
+
+      {/* 编辑分类弹窗 */}
+      <AddCategoryModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveEdit}
+        initialCategory={editingCategory}
       />
     </>
   );
