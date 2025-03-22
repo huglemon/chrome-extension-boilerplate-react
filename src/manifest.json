@@ -22,7 +22,7 @@
     }
   ],
   "devtools_page": "devtools.html",
-  "permissions": ["tabs", "storage", "chrome://favicon/*"],
+  "permissions": ["tabs", "storage", "chrome://favicon/*", "bookmarks"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "web_accessible_resources": [
     {

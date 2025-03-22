@@ -21,6 +21,7 @@ import Clock from '../../components/newtab/clock';
 import SearchBar from '../../components/newtab/searchBar';
 import Link from '../../components/newtab/link/link';
 import Add from '../../components/newtab/link/add';
+import Import from '../../components/newtab/link/import';
 
 // 导入配置文件
 import linkConfig from '../../components/newtab/link/config.json';
@@ -135,6 +136,19 @@ const Newtab = () => {
     saveLinksToStorage(updatedLinks);
   };
 
+  // 批量导入收藏夹链接
+  const importLinks = (links) => {
+    if (!links || links.length === 0) return;
+
+    // 将新导入的链接添加到现有链接列表
+    const updatedLinks = [...appLinks, ...links];
+    setAppLinks(updatedLinks);
+    saveLinksToStorage(updatedLinks);
+
+    // 显示导入成功消息
+    alert(`成功导入了 ${links.length} 个收藏夹链接`);
+  };
+
   // 删除链接
   const removeLink = (index) => {
     const updatedLinks = appLinks.filter((_, i) => i !== index);
@@ -231,6 +245,7 @@ const Newtab = () => {
                 <div>
                   <Add onAdd={addLink} />
                 </div>
+                <Import onImport={importLinks} />
               </div>
             </SortableContext>
 

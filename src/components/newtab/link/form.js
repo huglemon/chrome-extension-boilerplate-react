@@ -28,6 +28,14 @@ export default function LinkForm({
   // 处理表单输入变化
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // 对名称字段进行长度限制
+    if (name === 'name' && value.length > 20) {
+      // 截断超过20个字符的名称
+      setFormData({ ...formData, [name]: value.substring(0, 20) });
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -62,14 +70,20 @@ export default function LinkForm({
         <Label htmlFor="name" className="text-right">
           名称
         </Label>
-        <Input
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          className="col-span-3"
-          placeholder="链接名称"
-        />
+        <div className="col-span-3">
+          <Input
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            className="w-full"
+            placeholder="链接名称"
+            maxLength={20}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            最多输入20个字符 ({formData.name.length}/20)
+          </p>
+        </div>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="url" className="text-right">

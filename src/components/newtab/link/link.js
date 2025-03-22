@@ -143,7 +143,10 @@ export default function Link({
       </div>
 
       {/* 链接名称 */}
-      <span className="text-sm text-white text-center mt-1 line-clamp-1">
+      <span
+        className="text-sm text-white text-center mt-1 line-clamp-1 max-w-16 overflow-hidden text-ellipsis"
+        title={name}
+      >
         {name}
       </span>
 

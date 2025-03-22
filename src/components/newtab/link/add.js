@@ -62,7 +62,9 @@ export default function Add({ onAdd }) {
             />
           </svg>
         </div>
-        <span className="text-sm text-white text-center mt-1">添加链接</span>
+        <span className="text-sm text-white text-center mt-1 line-clamp-1 max-w-16 overflow-hidden text-ellipsis">
+          添加链接
+        </span>
       </div>
 
       {/* 添加链接对话框 */}
