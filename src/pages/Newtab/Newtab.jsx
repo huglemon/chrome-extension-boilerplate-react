@@ -58,25 +58,36 @@ const Newtab = () => {
   const [activeCategory, setActiveCategory] = useState(0);
 
   // 使用状态来按分类存储链接列表
-  const [categorizedLinks, setCategorizedLinks] = useState({
-    0: [], // 主页
-    1: [], // 程序员
-    2: [], // 设计
-    3: [], // 产品
-    4: [], // 摄影
-    5: [], // 添加
-  });
+  const [categorizedLinks, setCategorizedLinks] = useState({});
 
   // 跟踪拖动状态
   const isDragging = useRef(false);
   // 当前拖动的项
   const [activeId, setActiveId] = useState(null);
 
-  // 从配置文件获取默认链接数据
-  const { defaultAppLinks } = linkConfig;
+  // 从配置文件获取默认分类和链接数据
+  const { categories } = linkConfig;
+
+  // 初始化默认链接数据
+  useEffect(() => {
+    const initialLinks = {};
+    categories.forEach((category) => {
+      initialLinks[category.id] = category.links || [];
+    });
+    initialLinks[5] = []; // 添加分类的空数组
+    setCategorizedLinks(initialLinks);
+  }, []);
 
   // 获取当前分类的链接
   const appLinks = categorizedLinks[activeCategory] || [];
+
+  // 调试信息
+  useEffect(() => {
+    console.log('当前分类ID:', activeCategory);
+    console.log('所有分类数据:', categories);
+    console.log('当前分类的链接:', appLinks);
+    console.log('所有分类的链接:', categorizedLinks);
+  }, [activeCategory, appLinks, categorizedLinks, categories]);
 
   // 每个分类的最大链接数量
   const MAX_LINKS_PER_CATEGORY = 45;
@@ -86,11 +97,7 @@ const Newtab = () => {
 
   // 获取所有分类（预设 + 自定义）
   const allCategories = [
-    { id: 0, name: '主页', icon: 'Home' },
-    { id: 1, name: '程序员', icon: 'Code' },
-    { id: 2, name: '设计', icon: 'Palette' },
-    { id: 3, name: '产品', icon: 'Lightbulb' },
-    { id: 4, name: '摄影', icon: 'Camera' },
+    ...categories,
     ...customCategories,
     { id: 5, name: '添加', icon: 'Plus' }, // 添加分组始终放在最后
   ];
@@ -119,7 +126,7 @@ const Newtab = () => {
 
   // 在组件挂载时从本地存储加载链接和自定义分类
   useEffect(() => {
-    // 尝试从本地存储获取链接
+    // 尝试从本地存储加载链接
     const loadLinksFromStorage = async () => {
       try {
         // 首先尝试使用 chrome.storage.local (推荐用于 Chrome 扩展)
@@ -128,17 +135,25 @@ const Newtab = () => {
             ['categorizedLinks', 'customCategories'],
             (result) => {
               if (result.categorizedLinks) {
-                setCategorizedLinks(result.categorizedLinks);
+                // 合并本地存储的链接和默认链接
+                const updatedLinks = { ...result.categorizedLinks };
+                categories.forEach((category) => {
+                  if (
+                    !updatedLinks[category.id] ||
+                    updatedLinks[category.id].length === 0
+                  ) {
+                    updatedLinks[category.id] = category.links || [];
+                  }
+                });
+                setCategorizedLinks(updatedLinks);
+                chrome.storage.local.set({ categorizedLinks: updatedLinks });
               } else {
                 // 如果没有保存的链接，使用默认链接并保存到存储
-                const initialLinks = {
-                  0: defaultAppLinks,
-                  1: [],
-                  2: [],
-                  3: [],
-                  4: [],
-                  5: [],
-                };
+                const initialLinks = {};
+                categories.forEach((category) => {
+                  initialLinks[category.id] = category.links || [];
+                });
+                initialLinks[5] = []; // 添加分类
                 setCategorizedLinks(initialLinks);
                 chrome.storage.local.set({ categorizedLinks: initialLinks });
               }
@@ -153,17 +168,29 @@ const Newtab = () => {
           // 回退到使用 localStorage
           const savedLinks = localStorage.getItem('categorizedLinks');
           if (savedLinks) {
-            setCategorizedLinks(JSON.parse(savedLinks));
+            const parsedLinks = JSON.parse(savedLinks);
+            // 合并本地存储的链接和默认链接
+            const updatedLinks = { ...parsedLinks };
+            categories.forEach((category) => {
+              if (
+                !updatedLinks[category.id] ||
+                updatedLinks[category.id].length === 0
+              ) {
+                updatedLinks[category.id] = category.links || [];
+              }
+            });
+            setCategorizedLinks(updatedLinks);
+            localStorage.setItem(
+              'categorizedLinks',
+              JSON.stringify(updatedLinks)
+            );
           } else {
             // 如果没有保存的链接，使用默认链接并保存到存储
-            const initialLinks = {
-              0: defaultAppLinks,
-              1: [],
-              2: [],
-              3: [],
-              4: [],
-              5: [],
-            };
+            const initialLinks = {};
+            categories.forEach((category) => {
+              initialLinks[category.id] = category.links || [];
+            });
+            initialLinks[5] = []; // 添加分类
             setCategorizedLinks(initialLinks);
             localStorage.setItem(
               'categorizedLinks',
@@ -180,20 +207,17 @@ const Newtab = () => {
       } catch (error) {
         console.error('加载数据时出错:', error);
         // 出错时使用默认链接
-        const initialLinks = {
-          0: defaultAppLinks,
-          1: [],
-          2: [],
-          3: [],
-          4: [],
-          5: [],
-        };
+        const initialLinks = {};
+        categories.forEach((category) => {
+          initialLinks[category.id] = category.links || [];
+        });
+        initialLinks[5] = []; // 添加分类
         setCategorizedLinks(initialLinks);
       }
     };
 
     loadLinksFromStorage();
-  }, []);
+  }, [categories]);
 
   // 保存链接到本地存储
   const saveLinksToStorage = (links) => {
@@ -288,15 +312,8 @@ const Newtab = () => {
 
   // 获取分类名称
   const getCategoryName = (categoryId) => {
-    const categoryNames = {
-      0: '主页',
-      1: '程序员',
-      2: '设计',
-      3: '产品',
-      4: '摄影',
-      5: '添加',
-    };
-    return categoryNames[categoryId] || '未知分类';
+    const category = allCategories.find((cat) => cat.id === categoryId);
+    return category ? category.name : '未知分类';
   };
 
   // 删除链接
@@ -371,9 +388,12 @@ const Newtab = () => {
 
   // 重置当前分类的链接到默认配置
   const resetLinksToDefault = () => {
+    const category = categories.find((cat) => cat.id === activeCategory);
+    const defaultLinks = category ? category.links : [];
+
     const updatedLinks = {
       ...categorizedLinks,
-      [activeCategory]: activeCategory === 0 ? defaultAppLinks : [],
+      [activeCategory]: defaultLinks,
     };
 
     setCategorizedLinks(updatedLinks);
@@ -506,15 +526,21 @@ const Newtab = () => {
                 strategy={rectSortingStrategy}
               >
                 <div className="grid grid-cols-5 md:grid-cols-12 gap-6 justify-items-center">
-                  {appLinks.map((app, index) => (
-                    <SortableLink
-                      key={`${app.name}-${index}`}
-                      app={app}
-                      index={index}
-                      onEdit={editLink}
-                      onDelete={removeLink}
-                    />
-                  ))}
+                  {appLinks.length > 0 ? (
+                    appLinks.map((app, index) => (
+                      <SortableLink
+                        key={`${app.name}-${index}`}
+                        app={app}
+                        index={index}
+                        onEdit={editLink}
+                        onDelete={removeLink}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center text-gray-500">
+                      当前分类暂无链接
+                    </div>
+                  )}
 
                   {/* 添加按钮 - 不需要排序 */}
                   <div>

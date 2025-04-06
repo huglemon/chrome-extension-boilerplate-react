@@ -7,6 +7,15 @@ import {
   CardFooter,
 } from '../../components/ui/card';
 import LinkForm from '../../components/newtab/link/form';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '../../components/ui/select';
 
 // 导入默认配置，用于获取默认图标颜色等信息
 import linkConfig from '../../components/newtab/link/config.json';
@@ -26,6 +35,7 @@ function Popup() {
     bgColor: '#FFFFFF',
     textIcon: '',
     textBgColor: '#ff4757',
+    categoryId: 0, // 默认为"主页"分类
   });
 
   // 处理标签页数据
@@ -75,6 +85,7 @@ function Popup() {
         bgColor: '#FFFFFF',
         textIcon: textIcon,
         textBgColor: linkConfig.defaultAppLinks[0].textBgColor || '#ff4757',
+        categoryId: 0, // 将链接添加到"主页"分类
       });
 
       console.log('标签页数据处理完成');
@@ -167,7 +178,12 @@ function Popup() {
           // Chrome扩展环境
           chrome.storage.local.get(['appLinks'], (result) => {
             let currentLinks = result.appLinks || linkConfig.defaultAppLinks;
-            const updatedLinks = [...currentLinks, formData];
+            // 确保categoryId存在，默认为0（主页分类）
+            const linkWithCategory = {
+              ...formData,
+              categoryId: formData.categoryId ?? 0,
+            };
+            const updatedLinks = [...currentLinks, linkWithCategory];
 
             chrome.storage.local.set({ appLinks: updatedLinks }, () => {
               setIsSaving(false);
@@ -182,7 +198,12 @@ function Popup() {
             ? JSON.parse(savedLinks)
             : linkConfig.defaultAppLinks;
 
-          const updatedLinks = [...currentLinks, formData];
+          // 确保categoryId存在，默认为0（主页分类）
+          const linkWithCategory = {
+            ...formData,
+            categoryId: formData.categoryId ?? 0,
+          };
+          const updatedLinks = [...currentLinks, linkWithCategory];
           localStorage.setItem('appLinks', JSON.stringify(updatedLinks));
 
           setIsSaving(false);

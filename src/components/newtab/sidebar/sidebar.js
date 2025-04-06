@@ -34,8 +34,14 @@ import {
   Cpu,
   Truck,
   ShoppingBag,
+  HeartHandshake,
+  Newspaper,
+  Package,
+  Store,
+  TrendingUp,
 } from 'lucide-react';
 import AddCategoryModal from './AddCategoryModal';
+import linkConfig from '../link/config.json';
 
 export default function Sidebar({
   activeCategory = 0,
@@ -56,19 +62,10 @@ export default function Sidebar({
   });
   const sidebarRef = useRef(null);
 
-  // 分类数据
-  const defaultCategories = [
-    { id: 0, name: '主页', icon: Home },
-    { id: 1, name: '程序员', icon: Code },
-    { id: 2, name: '设计', icon: Palette },
-    { id: 3, name: '产品', icon: Lightbulb },
-    { id: 4, name: '摄影', icon: Camera },
-  ];
+  // 从配置文件获取默认分类
+  const { categories } = linkConfig;
 
-  // 添加分组（总是放在最后）
-  const addCategory = { id: 5, name: '添加', icon: Plus };
-
-  // 处理自定义分类 - 这里需要将icon字符串转换为组件
+  // 图标映射表
   const iconComponents = {
     Home,
     Code,
@@ -102,7 +99,21 @@ export default function Sidebar({
     Cpu,
     Truck,
     ShoppingBag,
+    HeartHandshake,
+    Newspaper,
+    Package,
+    Store,
+    TrendingUp,
   };
+
+  // 处理预设分类 - 将icon字符串转换为组件
+  const defaultCategories = categories.map((category) => ({
+    ...category,
+    icon: iconComponents[category.icon] || Home, // 如果找不到指定的图标，使用Home作为默认
+  }));
+
+  // 添加分组（总是放在最后）
+  const addCategory = { id: 5, name: '添加', icon: Plus };
 
   // 合并默认和自定义分类
   const allCategories = [

@@ -19,6 +19,51 @@ import {
 } from '../../../components/ui/alert-dialog';
 import LinkForm from './form';
 
+// 缓存图标为 base64
+async function cacheIcon(url) {
+  try {
+    // 先检查缓存
+    const cachedIcon = localStorage.getItem(`icon_cache_${url}`);
+    if (cachedIcon) {
+      return cachedIcon;
+    }
+
+    // 如果没有缓存，则获取图标并转换为 base64
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result;
+        // 存储到本地缓存
+        try {
+          localStorage.setItem(`icon_cache_${url}`, base64data);
+        } catch (e) {
+          // 如果存储空间满了，清除所有图标缓存
+          const keys = Object.keys(localStorage);
+          keys.forEach((key) => {
+            if (key.startsWith('icon_cache_')) {
+              localStorage.removeItem(key);
+            }
+          });
+          // 重试存储当前图标
+          try {
+            localStorage.setItem(`icon_cache_${url}`, base64data);
+          } catch (e) {
+            console.error('缓存图标失败:', e);
+          }
+        }
+        resolve(base64data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('获取图标失败:', error);
+    return null;
+  }
+}
+
 export default function Link({
   icon, // 网站图标URL或组件
   textIcon, // 文字图标内容
@@ -31,6 +76,9 @@ export default function Link({
   onDelete,
   ...props
 }) {
+  const [cachedIcon, setCachedIcon] = useState(icon);
+  const [isLoadingIcon, setIsLoadingIcon] = useState(false);
+
   // 控制上下文菜单的显示和位置
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -53,6 +101,22 @@ export default function Link({
   };
 
   const menuRef = useRef(null);
+
+  // 加载和缓存图标
+  useEffect(() => {
+    if (typeof icon === 'string' && icon.startsWith('http')) {
+      setIsLoadingIcon(true);
+      cacheIcon(icon)
+        .then((base64Icon) => {
+          if (base64Icon) {
+            setCachedIcon(base64Icon);
+          }
+        })
+        .finally(() => {
+          setIsLoadingIcon(false);
+        });
+    }
+  }, [icon]);
 
   // 处理点击事件，在新标签页打开链接
   const handleClick = (url) => {
@@ -108,15 +172,17 @@ export default function Link({
       {/* 网站图标 */}
       <div
         className={cn(
-          'border shadow-sm relative w-16 h-16 p-4 rounded-xl flex items-center justify-center overflow-hidden',
+          ' shadow-sm relative w-16 h-16 p-4 rounded-xl flex items-center justify-center overflow-hidden',
           className
         )}
         style={{ backgroundColor: '#ffffff' }}
         onClick={() => handleClick(url)}
       >
-        {typeof icon === 'string' ? (
+        {isLoadingIcon ? (
+          <div className="animate-pulse bg-gray-200 w-full h-full rounded-lg" />
+        ) : typeof cachedIcon === 'string' ? (
           <img
-            src={icon}
+            src={cachedIcon}
             alt={name}
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -128,7 +194,9 @@ export default function Link({
             }}
           />
         ) : (
-          icon || <span className="text-xl font-bold">{name.charAt(0)}</span>
+          cachedIcon || (
+            <span className="text-xl font-bold">{name.charAt(0)}</span>
+          )
         )}
 
         {/* 文字图标（如果提供） */}
