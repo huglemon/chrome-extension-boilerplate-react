@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { RefreshCw, History } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { RefreshCw, History, Download, Upload } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import {
   AlertDialog,
@@ -11,6 +11,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
+import { toast } from 'sonner';
+// 导入配置文件
+import linkConfig from './link/config.json';
 
 export default function Background({ children, onReset }) {
   const [backgrounds, setBackgrounds] = useState([]);
@@ -18,6 +21,8 @@ export default function Background({ children, onReset }) {
   const [loading, setLoading] = useState(true);
   // 重置确认对话框状态
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const fileInputRef = useRef(null);
 
   // 获取Bing每日图片
   const fetchBingImages = async () => {
@@ -75,6 +80,150 @@ export default function Background({ children, onReset }) {
     setResetDialogOpen(false);
   };
 
+  // 导出链接数据
+  const handleExportLinks = async () => {
+    try {
+      let linksData, customCategories;
+
+      // 首先尝试使用 chrome.storage.local
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        const result = await new Promise((resolve) => {
+          chrome.storage.local.get(
+            ['categorizedLinks', 'customCategories'],
+            resolve
+          );
+        });
+        linksData = result.categorizedLinks;
+        customCategories = result.customCategories;
+      } else {
+        // 回退到使用 localStorage
+        const savedLinks = localStorage.getItem('categorizedLinks');
+        const savedCategories = localStorage.getItem('customCategories');
+        if (savedLinks) {
+          linksData = JSON.parse(savedLinks);
+        }
+        if (savedCategories) {
+          customCategories = JSON.parse(savedCategories);
+        }
+      }
+
+      if (!linksData) {
+        toast.error('没有找到可导出的链接数据');
+        return;
+      }
+
+      // 创建导出数据对象
+      const exportData = {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        data: {
+          links: linksData,
+          categories: {
+            default: linkConfig.categories, // 预设分组
+            custom: customCategories || [], // 自定义分组
+          },
+        },
+      };
+
+      // 转换为 JSON 字符串
+      const jsonString = JSON.stringify(exportData, null, 2);
+
+      // 创建 Blob 对象
+      const blob = new Blob([jsonString], { type: 'application/json' });
+
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inwind-links-${
+        new Date().toISOString().split('T')[0]
+      }.json`;
+
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+
+      // 清理
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('链接数据导出成功');
+    } catch (error) {
+      console.error('导出链接数据失败:', error);
+      toast.error('导出链接数据失败');
+    }
+  };
+
+  // 处理文件导入
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importData = JSON.parse(text);
+
+      // 验证导入数据格式
+      if (
+        !importData.version ||
+        !importData.data ||
+        !importData.data.links ||
+        !importData.data.categories
+      ) {
+        toast.error('导入文件格式不正确');
+        return;
+      }
+
+      // 显示确认对话框
+      setImportDialogOpen(true);
+
+      // 存储导入数据供确认后使用
+      fileInputRef.current = importData;
+    } catch (error) {
+      console.error('读取导入文件失败:', error);
+      toast.error('读取导入文件失败');
+    }
+  };
+
+  // 确认导入
+  const handleImportConfirm = async () => {
+    const importData = fileInputRef.current;
+    if (!importData) return;
+
+    try {
+      const { links, categories } = importData.data;
+
+      // 保存到存储
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        await new Promise((resolve) => {
+          chrome.storage.local.set(
+            {
+              categorizedLinks: links,
+              customCategories: categories.custom,
+            },
+            resolve
+          );
+        });
+      } else {
+        localStorage.setItem('categorizedLinks', JSON.stringify(links));
+        localStorage.setItem(
+          'customCategories',
+          JSON.stringify(categories.custom)
+        );
+      }
+
+      // 刷新页面以应用更改
+      window.location.reload();
+
+      toast.success('数据导入成功');
+    } catch (error) {
+      console.error('导入数据失败:', error);
+      toast.error('导入数据失败');
+    } finally {
+      setImportDialogOpen(false);
+    }
+  };
+
   // 生成背景样式
   const getBackgroundStyle = () => {
     if (loading) {
@@ -124,6 +273,35 @@ export default function Background({ children, onReset }) {
         >
           <History className="h-5 w-5 text-white/30 group-hover:text-white" />
         </Button>
+
+        {/* 导出按钮 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="group bg-black/10 backdrop-blur-sm hover:bg-black/70"
+          onClick={handleExportLinks}
+          title="导出链接数据"
+        >
+          <Download className="h-5 w-5 text-white/30 group-hover:text-white" />
+        </Button>
+
+        {/* 导入按钮 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="group bg-black/10 backdrop-blur-sm hover:bg-black/70"
+          onClick={() => document.getElementById('import-file').click()}
+          title="导入链接数据"
+        >
+          <Upload className="h-5 w-5 text-white/30 group-hover:text-white" />
+        </Button>
+        <input
+          id="import-file"
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={handleImport}
+        />
       </div>
 
       {/* 重置确认对话框 */}
@@ -142,6 +320,27 @@ export default function Background({ children, onReset }) {
               onClick={handleResetConfirm}
             >
               重置
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 导入确认对话框 */}
+      <AlertDialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认导入</AlertDialogTitle>
+            <AlertDialogDescription>
+              导入将覆盖所有现有的链接和分组数据。此操作不可撤销，您确定要继续吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={handleImportConfirm}
+            >
+              确认导入
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

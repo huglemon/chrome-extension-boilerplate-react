@@ -15,6 +15,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Toaster } from 'sonner';
 
 import Background from '../../components/newtab/background';
 import Clock from '../../components/newtab/clock';
@@ -491,78 +492,83 @@ const Newtab = () => {
   };
 
   return (
-    <Background onReset={resetLinksToDefault}>
-      <div className="flex">
-        {/* 侧边栏 */}
-        <Sidebar
-          activeCategory={activeCategory}
-          onCategoryChange={handleCategoryChange}
-          onAddCategory={addCategory}
-          onEditCategory={editCategory}
-          onDeleteCategory={deleteCategory}
-          customCategories={customCategories}
-        />
+    <div className="newtab">
+      <Toaster position="top-center" />
+      <Background onReset={resetLinksToDefault}>
+        <div className="flex">
+          {/* 侧边栏 */}
+          <Sidebar
+            activeCategory={activeCategory}
+            onCategoryChange={handleCategoryChange}
+            onAddCategory={addCategory}
+            onEditCategory={editCategory}
+            onDeleteCategory={deleteCategory}
+            customCategories={customCategories}
+          />
 
-        {/* 主内容区 */}
-        <div className="flex-1 min-h-screen text-foreground py-10">
-          {/* 固定区域 */}
-          <div className="flex flex-col items-center justify-center gap-10 mb-10">
-            <Clock />
-            <SearchBar />
-          </div>
-          {/* 应用图标网格 */}
-          <div
-            className="container mx-auto px-4 mt-8"
-            onClickCapture={handleClickCapture}
-          >
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
+          {/* 主内容区 */}
+          <div className="flex-1 min-h-screen text-foreground py-10">
+            {/* 固定区域 */}
+            <div className="flex flex-col items-center justify-center gap-10 mb-10">
+              <Clock />
+              <SearchBar />
+            </div>
+            {/* 应用图标网格 */}
+            <div
+              className="container mx-auto px-4 mt-8"
+              onClickCapture={handleClickCapture}
             >
-              <SortableContext
-                items={appLinks.map((app, index) => `${app.name}-${index}`)}
-                strategy={rectSortingStrategy}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               >
-                <div className="grid grid-cols-5 md:grid-cols-12 gap-6 justify-items-center">
-                  {appLinks.length > 0 ? (
-                    appLinks.map((app, index) => (
-                      <SortableLink
-                        key={`${app.name}-${index}`}
-                        app={app}
-                        index={index}
-                        onEdit={editLink}
-                        onDelete={removeLink}
-                      />
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center text-gray-500">
-                      当前分类暂无链接
+                <SortableContext
+                  items={appLinks.map((app, index) => `${app.name}-${index}`)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-5 md:grid-cols-12 gap-6 justify-items-center">
+                    {appLinks.length > 0 ? (
+                      appLinks.map((app, index) => (
+                        <SortableLink
+                          key={`${app.name}-${index}`}
+                          app={app}
+                          index={index}
+                          onEdit={editLink}
+                          onDelete={removeLink}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center text-gray-500">
+                        当前分类暂无链接
+                      </div>
+                    )}
+
+                    {/* 添加按钮 - 不需要排序 */}
+                    <div>
+                      <Add onAdd={addLink} />
                     </div>
-                  )}
-
-                  {/* 添加按钮 - 不需要排序 */}
-                  <div>
-                    <Add onAdd={addLink} />
+                    <Import onImport={importLinks} />
                   </div>
-                  <Import onImport={importLinks} />
-                </div>
-              </SortableContext>
+                </SortableContext>
 
-              {/* 拖动覆盖层 - 提供更流畅的视觉反馈 */}
-              <DragOverlay adjustScale={true}>
-                {activeId ? (
-                  <div className="opacity-80">
-                    <Link {...appLinks[parseInt(activeId.split('-').pop())]} />
-                  </div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
+                {/* 拖动覆盖层 - 提供更流畅的视觉反馈 */}
+                <DragOverlay adjustScale={true}>
+                  {activeId ? (
+                    <div className="opacity-80">
+                      <Link
+                        {...appLinks[parseInt(activeId.split('-').pop())]}
+                      />
+                    </div>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+            </div>
           </div>
         </div>
-      </div>
-    </Background>
+      </Background>
+    </div>
   );
 };
 
